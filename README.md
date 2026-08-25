@@ -4,7 +4,7 @@ An installable, offline-first blackjack training app with an original dark/chart
 
 ## Included
 
-- 40 hard-hand, soft-hand and pair strategy rules
+- 340 hard-hand, soft-hand and pair situations covering every dealer up-card from 2 through ace
 - 10-question sessions without repeated scenarios
 - Prominent answer, explanation and rule reference after every response
 - Hi-Lo card-value drills
