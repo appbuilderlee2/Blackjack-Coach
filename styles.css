@@ -115,6 +115,16 @@ h2 { font-size: 24px; letter-spacing: -.025em; }
 .answer-btn:disabled { cursor: default; }
 .feedback { min-height: 78px; margin-top: 15px; padding: 14px 16px; border-radius: 16px; text-align: left; color: var(--muted); background: #121414; border: 1px solid #292b2c; line-height: 1.45; }
 .feedback strong { color: var(--text); }
+.answer-feedback { padding: 18px; scroll-margin: 110px 0; }
+.answer-feedback.is-correct { border-color: color-mix(in srgb, var(--good) 56%, #292b2c); background: linear-gradient(145deg, rgba(67,218,131,.1), #121414 55%); }
+.answer-feedback.is-wrong { border-color: color-mix(in srgb, var(--bad) 58%, #292b2c); background: linear-gradient(145deg, rgba(239,91,97,.1), #121414 55%); }
+.feedback-status { display: block; color: var(--good); font-size: 12px; font-weight: 820; letter-spacing: .12em; text-transform: uppercase; }
+.is-wrong .feedback-status { color: #ff8589; }
+.answer-feedback h3 { margin: 5px 0 8px; color: var(--text); font-size: 22px; }
+.answer-feedback p { margin: 0; color: #b7b9ba; line-height: 1.55; }
+.rule-reference { margin-top: 14px; padding-top: 12px; border-top: 1px solid #303234; display: flex; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 13px; }
+.rule-reference strong { color: var(--accent); }
+.answer-feedback .primary { min-height: 54px; margin-top: 16px; }
 
 .speed-count { font-size: 68px; font-weight: 850; letter-spacing: -.05em; margin: 12px 0 18px; }
 .keypad { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-top: 18px; }

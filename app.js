@@ -1,4 +1,4 @@
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const STORAGE_KEY = "blackjack-coach-state-v1";
 const SUITS = ["♠", "♥", "♦", "♣"];
 
@@ -110,20 +110,67 @@ function cardHtml(card, small = false) {
 }
 
 const strategyScenarios = [
-  { player:["10","6"], dealer:"10", answer:"Hit", why:"Hard 16 should hit against a dealer 10." },
-  { player:["A","7"], dealer:"9", answer:"Hit", why:"Soft 18 should hit against a dealer 9." },
-  { player:["8","8"], dealer:"10", answer:"Split", why:"Always split eights; two new hands improve the position." },
-  { player:["A","8"], dealer:"6", answer:"Stand", why:"Soft 19 is strong enough to stand." },
-  { player:["10","2"], dealer:"3", answer:"Hit", why:"Hard 12 hits against dealer 2 or 3." },
-  { player:["9","9"], dealer:"7", answer:"Stand", why:"Stand on 18 against a dealer 7." },
-  { player:["5","6"], dealer:"6", answer:"Double", why:"Double hard 11 against a dealer 6." },
-  { player:["A","6"], dealer:"5", answer:"Double", why:"Double soft 17 against dealer 3–6 when allowed." },
-  { player:["7","7"], dealer:"8", answer:"Hit", why:"Hard 14 should hit against a dealer 8." },
-  { player:["10","10"], dealer:"6", answer:"Stand", why:"Never split tens in standard basic strategy." }
+  // Hard hands — 16 rules
+  { category:"Hard 8", player:["5","3"], dealer:"10", answer:"Hit", why:"Eight is too low to stand and cannot be doubled profitably. Take another card against every dealer up-card." },
+  { category:"Hard 9", player:["5","4"], dealer:"2", answer:"Hit", why:"A dealer 2 is not weak enough to justify doubling hard 9. Hit and improve the hand." },
+  { category:"Hard 9", player:["5","4"], dealer:"6", answer:"Double", why:"Dealer 6 is a strong bust card. Double hard 9 to put more money out while you are favoured to improve." },
+  { category:"Hard 10", player:["6","4"], dealer:"9", answer:"Double", why:"Hard 10 is likely to become 18–20, so double against dealer 2 through 9." },
+  { category:"Hard 10", player:["6","4"], dealer:"10", answer:"Hit", why:"Against a dealer 10 your advantage is not strong enough to double. Take one card normally." },
+  { category:"Hard 11", player:["6","5"], dealer:"10", answer:"Double", why:"Hard 11 is the best doubling total. Against dealer 2 through 10, double to maximise a strong draw." },
+  { category:"Hard 11", player:["6","5"], dealer:"A", answer:"Hit", why:"Under these stand-on-soft-17 rules, the dealer ace is too strong for a profitable double. Hit instead." },
+  { category:"Hard 12", player:["10","2"], dealer:"3", answer:"Hit", why:"Dealer 2 or 3 does not bust often enough. Hit hard 12 despite the risk of drawing a ten-value card." },
+  { category:"Hard 12", player:["10","2"], dealer:"4", answer:"Stand", why:"Dealer 4, 5 or 6 is vulnerable to busting. Stand and let the dealer draw." },
+  { category:"Hard 13", player:["8","5"], dealer:"2", answer:"Stand", why:"With hard 13–16, stand against dealer 2 through 6 and rely on the dealer's bust chance." },
+  { category:"Hard 13", player:["8","5"], dealer:"7", answer:"Hit", why:"Dealer 7 or higher is likely to make a strong total. Hit hard 13 to try to improve." },
+  { category:"Hard 15", player:["10","5"], dealer:"6", answer:"Stand", why:"Dealer 6 is the weakest up-card. Standing avoids busting your own hand and lets the dealer take the risk." },
+  { category:"Hard 15", player:["10","5"], dealer:"10", answer:"Hit", why:"Without surrender, hard 15 must hit against dealer 10 because standing loses too often." },
+  { category:"Hard 16", player:["10","6"], dealer:"6", answer:"Stand", why:"Stand hard 16 against dealer 2 through 6. The dealer's bust chance is better than your chance of safely improving." },
+  { category:"Hard 16", player:["10","6"], dealer:"10", answer:"Hit", why:"Without surrender, hit hard 16 against dealer 7 through ace. It is risky, but standing is worse." },
+  { category:"Hard 17", player:["10","7"], dealer:"A", answer:"Stand", why:"Always stand on hard 17 or more. Any hit has a very high chance of busting." },
+
+  // Soft hands — 12 rules
+  { category:"Soft 13", player:["A","2"], dealer:"4", answer:"Hit", why:"Soft 13 is too weak to stand. Double only against dealer 5 or 6; otherwise hit." },
+  { category:"Soft 13", player:["A","2"], dealer:"5", answer:"Double", why:"The ace protects you from busting and dealer 5 is weak, making this a profitable double." },
+  { category:"Soft 15", player:["A","4"], dealer:"3", answer:"Hit", why:"Soft 15 doubles only against dealer 4 through 6. Against 3, take a normal hit." },
+  { category:"Soft 15", player:["A","4"], dealer:"4", answer:"Double", why:"Double soft 15 against dealer 4 through 6: you can improve safely while the dealer is vulnerable." },
+  { category:"Soft 17", player:["A","6"], dealer:"2", answer:"Hit", why:"Soft 17 is not strong enough to stand. Against dealer 2, hit rather than double." },
+  { category:"Soft 17", player:["A","6"], dealer:"3", answer:"Double", why:"Double soft 17 against dealer 3 through 6. The flexible ace makes drawing safe." },
+  { category:"Soft 18", player:["A","7"], dealer:"2", answer:"Stand", why:"Soft 18 stands against dealer 2, 7 or 8. It is already competitive and doubling is not preferred here." },
+  { category:"Soft 18", player:["A","7"], dealer:"4", answer:"Double", why:"Double soft 18 against dealer 3 through 6 to press your advantage over a weak dealer card." },
+  { category:"Soft 18", player:["A","7"], dealer:"8", answer:"Stand", why:"Soft 18 is strong enough to stand against dealer 8; hitting adds unnecessary risk." },
+  { category:"Soft 18", player:["A","7"], dealer:"9", answer:"Hit", why:"Dealer 9, 10 or ace often makes 19 or better. Hit soft 18 because the ace keeps the hand flexible." },
+  { category:"Soft 19", player:["A","8"], dealer:"6", answer:"Stand", why:"Under stand-on-soft-17 rules, soft 19 is already strong. Do not risk weakening it." },
+  { category:"Soft 20", player:["A","9"], dealer:"A", answer:"Stand", why:"Always stand on soft 20. It is one of the strongest possible non-blackjack hands." },
+
+  // Pairs — 12 rules
+  { category:"Pair of aces", player:["A","A"], dealer:"10", answer:"Split", why:"Always split aces. One card on each ace creates two strong chances to make 21." },
+  { category:"Pair of tens", player:["10","10"], dealer:"6", answer:"Stand", why:"Never split tens in basic strategy. A total of 20 is already exceptionally strong." },
+  { category:"Pair of nines", player:["9","9"], dealer:"6", answer:"Split", why:"Split nines against dealer 2 through 6 and 8 or 9; two starting nines outperform a single 18." },
+  { category:"Pair of nines", player:["9","9"], dealer:"7", answer:"Stand", why:"Stand on 18 against dealer 7, 10 or ace. Splitting would break up a hand that already competes well." },
+  { category:"Pair of nines", player:["9","9"], dealer:"8", answer:"Split", why:"Split nines against dealer 8 because two hands starting at 9 perform better than standing on 18." },
+  { category:"Pair of eights", player:["8","8"], dealer:"A", answer:"Split", why:"Always split eights. Hard 16 is a poor hand, while splitting gives two chances to build playable totals." },
+  { category:"Pair of sevens", player:["7","7"], dealer:"7", answer:"Split", why:"With double after split allowed, split sevens against dealer 2 through 7." },
+  { category:"Pair of sevens", player:["7","7"], dealer:"8", answer:"Hit", why:"Against dealer 8 or higher, do not split sevens. Treat the hand as hard 14 and hit." },
+  { category:"Pair of sixes", player:["6","6"], dealer:"6", answer:"Split", why:"With double after split allowed, split sixes against dealer 2 through 6." },
+  { category:"Pair of fives", player:["5","5"], dealer:"9", answer:"Double", why:"Never split fives. Play them as hard 10 and double against dealer 2 through 9." },
+  { category:"Pair of fours", player:["4","4"], dealer:"5", answer:"Split", why:"With double after split allowed, split fours only against dealer 5 or 6." },
+  { category:"Pair of twos", player:["2","2"], dealer:"8", answer:"Hit", why:"Split twos only against dealer 2 through 7 under these rules. Against 8 or higher, hit hard 4." }
 ];
 
+function shuffled(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 function startSession(mode) {
-  if (mode === "strategy") state.session = { mode, index:0, total:10, correct:0, scenario: randomFrom(strategyScenarios), answered:false };
+  if (mode === "strategy") {
+    const queue = shuffled(strategyScenarios).slice(0, 10);
+    state.session = { mode, index:0, total:queue.length, correct:0, queue, scenario:queue[0], answered:false };
+  }
   if (mode === "count") state.session = { mode, index:0, total:12, correct:0, card: randomCountCard(), answered:false };
   if (mode === "speed") state.session = { mode, cards: Array.from({length:20}, randomCountCard), shown:0, running:0, input:"", started:Date.now(), finished:false };
   state.view = "training";
@@ -147,7 +194,7 @@ function strategyView(s) {
     <section class="question-wrap"><p class="question-kicker">What is the right play?</p><h2 class="question-title">Choose your action</h2>
       <div class="table-area"><div class="dealer-label">Dealer</div><div class="playing-cards">${cardHtml(dealer)}</div><div class="hand-label">Your hand</div><div class="playing-cards">${s.renderCards.map(c=>cardHtml(c, true)).join("")}</div></div>
       <div class="answer-grid">${answers.map(a=>`<button class="answer-btn ${s.answered && a === s.scenario.answer ? "correct" : ""} ${s.answered && a === s.chosen && a !== s.scenario.answer ? "wrong" : ""}" data-answer="${a}" ${s.answered ? "disabled" : ""}>${a}</button>`).join("")}</div>
-      <div class="feedback">${s.answered ? `<strong>${s.chosen === s.scenario.answer ? "Correct." : `Correct answer: ${s.scenario.answer}.`}</strong> ${s.scenario.why}<button class="primary" data-next>Next hand</button>` : "Choose the best move using standard multi-deck basic strategy."}</div>
+      <div class="feedback ${s.answered ? `answer-feedback ${s.chosen === s.scenario.answer ? "is-correct" : "is-wrong"}` : ""}" ${s.answered ? 'tabindex="-1"' : ""}>${s.answered ? `<span class="feedback-status">${s.chosen === s.scenario.answer ? "Correct" : "Not quite"}</span><h3>Answer: ${s.scenario.answer}</h3><p>${s.scenario.why}</p><div class="rule-reference"><strong>Rule</strong><span>${s.scenario.category}</span></div><button class="primary" data-next>Next hand</button>` : "Choose the best move using standard multi-deck basic strategy."}</div>
     </section></main>`;
 }
 
@@ -158,7 +205,7 @@ function countView(s) {
     <section class="question-wrap"><p class="question-kicker">Hi-Lo system</p><h2 class="question-title">What does this card count as?</h2>
       <div class="table-area"><div class="playing-cards">${cardHtml(s.card)}</div></div>
       <div class="answer-grid count">${labels.map(([n,l])=>`<button class="answer-btn ${s.answered && n === value ? "correct" : ""} ${s.answered && n === s.chosen && n !== value ? "wrong" : ""}" data-count-answer="${n}" ${s.answered ? "disabled" : ""}>${l}</button>`).join("")}</div>
-      <div class="feedback">${s.answered ? `<strong>${s.chosen === value ? "Correct." : `Correct answer: ${value > 0 ? "+1" : value}.`}</strong> ${value === 1 ? "Low cards 2–6 add one." : value === 0 ? "Neutral cards 7–9 do not change the count." : "Tens, faces and aces subtract one."}<button class="primary" data-next>Next card</button>` : "Select −1, 0 or +1."}</div>
+      <div class="feedback ${s.answered ? `answer-feedback ${s.chosen === value ? "is-correct" : "is-wrong"}` : ""}" ${s.answered ? 'tabindex="-1"' : ""}>${s.answered ? `<span class="feedback-status">${s.chosen === value ? "Correct" : "Not quite"}</span><h3>Answer: ${value > 0 ? "+1" : value}</h3><p>${value === 1 ? "Low cards 2 through 6 add one because removing small cards leaves more tens and aces in the shoe." : value === 0 ? "Cards 7 through 9 are neutral because they have little effect on the player's overall advantage." : "Tens, face cards and aces subtract one because removing high cards reduces the chance of blackjack."}</p><div class="rule-reference"><strong>Hi-Lo group</strong><span>${value === 1 ? "Low cards" : value === 0 ? "Neutral cards" : "High cards"}</span></div><button class="primary" data-next>Next card</button>` : "Select −1, 0 or +1."}</div>
     </section></main>`;
 }
 
@@ -208,14 +255,14 @@ function stats() {
 
 function trainHub() {
   return `<main class="shell screen"><header class="topbar"><div><p class="eyeline">Choose your drill</p><h1>Train</h1><p class="subtle">Build accuracy first, then add speed.</p></div></header>
-    <section class="hero-card"><div class="hero-row"><div class="card-stack"><div class="mini-card back">10</div><div class="mini-card front">A <span>♠</span></div></div><div><h2>Basic Strategy</h2><p>10 adaptive hands with instant feedback.</p></div></div><button class="primary" data-mode="strategy">Start Training</button></section>
+    <section class="hero-card"><div class="hero-row"><div class="card-stack"><div class="mini-card back">10</div><div class="mini-card front">A <span>♠</span></div></div><div><h2>Basic Strategy</h2><p>40 rules across hard hands, soft hands and pairs. Each session draws 10 unique questions.</p></div></div><button class="primary" data-mode="strategy">Start Training</button></section>
     <section class="panel performance"><div class="panel-head"><h2>Card Count</h2><span>12 cards</span></div><p class="subtle">Learn the Hi-Lo value for every rank.</p><button class="primary" data-mode="count">Start Card Count</button></section>
     <section class="panel performance"><div class="panel-head"><h2>Speed Drill</h2><span>20 cards</span></div><p class="subtle">Keep a running count through a rapid shoe.</p><button class="primary" data-mode="speed">Start Speed Drill</button></section>${nav("train")}</main>`;
 }
 
 function settings() {
   return `<main class="shell screen"><header class="topbar"><div><p class="eyeline">Preferences</p><h1>Settings</h1><p class="subtle">Tune feedback and manage local progress.</p></div>${state.installPrompt ? `<button class="install" data-install>Install App</button>` : ""}</header>
-    <section class="panel settings-list"><div class="setting-row"><div class="setting-label"><strong>Haptic feedback</strong><small>Vibrate on answers</small></div><button class="switch ${state.haptics ? "on" : ""}" data-setting="haptics" role="switch" aria-checked="${state.haptics}"></button></div><div class="setting-row"><div class="setting-label"><strong>Sound</strong><small>Reserved for future audio cues</small></div><button class="switch ${state.sound ? "on" : ""}" data-setting="sound" role="switch" aria-checked="${state.sound}"></button></div><div class="setting-row"><div class="setting-label"><strong>Version</strong><small>Blackjack Coach PWA</small></div><strong>${VERSION}</strong></div></section>
+    <section class="panel settings-list"><div class="setting-row"><div class="setting-label"><strong>Haptic feedback</strong><small>Vibrate on answers</small></div><button class="switch ${state.haptics ? "on" : ""}" data-setting="haptics" role="switch" aria-checked="${state.haptics}"></button></div><div class="setting-row"><div class="setting-label"><strong>Sound</strong><small>Reserved for future audio cues</small></div><button class="switch ${state.sound ? "on" : ""}" data-setting="sound" role="switch" aria-checked="${state.sound}"></button></div><div class="setting-row"><div class="setting-label"><strong>Strategy rules</strong><small>6–8 decks · S17 · DAS · no surrender</small></div><strong>${strategyScenarios.length}</strong></div><div class="setting-row"><div class="setting-label"><strong>Version</strong><small>Blackjack Coach PWA</small></div><strong>${VERSION}</strong></div></section>
     <button class="danger" data-reset>Delete all training records</button><p class="legal">Training and educational simulator only. No real-money gambling or real-world winnings. Strategy examples use common multi-deck rules and may vary with table rules.</p>${nav("settings")}</main>`;
 }
 
@@ -242,20 +289,30 @@ function bind() {
 function answerStrategy(answer) {
   const s = state.session; if (!s || s.answered) return;
   s.chosen = answer; s.answered = true; if (answer === s.scenario.answer) s.correct++;
-  vibrate(answer === s.scenario.answer ? 15 : [20,40,20]); render();
+  vibrate(answer === s.scenario.answer ? 15 : [20,40,20]); render(); revealFeedback();
 }
 
 function answerCount(answer) {
   const s = state.session; if (!s || s.answered) return;
   s.chosen = answer; s.answered = true; if (answer === hilo(s.card.rank)) s.correct++;
-  vibrate(answer === hilo(s.card.rank) ? 15 : [20,40,20]); render();
+  vibrate(answer === hilo(s.card.rank) ? 15 : [20,40,20]); render(); revealFeedback();
+}
+
+function revealFeedback() {
+  requestAnimationFrame(() => {
+    const panel = document.querySelector(".answer-feedback");
+    if (!panel) return;
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+    panel.focus({ preventScroll:true });
+  });
 }
 
 function nextQuestion() {
   const s = state.session; s.index++;
   if (s.index >= s.total) return completeSession(s.mode, s.correct, s.total);
   s.answered = false; delete s.chosen;
-  if (s.mode === "strategy") { s.scenario = randomFrom(strategyScenarios); delete s.renderCards; delete s.renderDealer; }
+  if (s.mode === "strategy") { s.scenario = s.queue[s.index]; delete s.renderCards; delete s.renderDealer; }
   else s.card = randomCountCard();
   render();
 }
